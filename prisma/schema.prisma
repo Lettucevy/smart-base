@@ -1,0 +1,201 @@
+// ============================================================================
+// Smart-Base: Modelagem Relacional (Trilha A - Prisma ORM) + Vetorial (Trilha C - pgvector)
+// Catálogo de Conhecimento Corporativo & Sistema de Helpdesk da Linguagem HP-HL
+// ============================================================================
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+// Perfis de acesso dos usuários no ecossistema HP-HL
+enum PapelUsuario {
+  DESENVOLVEDOR
+  ANALISTA_SUPORTE
+  ENGENHEIRO_COMPILADOR
+  ADMIN
+}
+
+// Ciclo de vida de um chamado técnico
+enum StatusChamado {
+  ABERTO
+  EM_ANALISE
+  RESOLVIDO
+  FECHADO
+}
+
+// Severidade / prioridade operacional
+enum PrioridadeChamado {
+  BAIXA
+  MEDIA
+  ALTA
+  CRITICA
+}
+
+// ----------------------------------------------------------------------------
+// 1. Tabela: Usuario (Autores de artigos, clientes/devs e engenheiros de suporte)
+// ----------------------------------------------------------------------------
+model Usuario {
+  id           Int       @id @default(autoincrement())
+  nome         String    @db.VarChar(120)
+  email        String    @unique @db.VarChar(160)
+  departamento String    @default("Engenharia HP-HL") @db.VarChar(100)
+  papel        PapelUsuario @default(DESENVOLVEDOR)
+  ativo        Boolean   @default(true)
+  criadoEm     DateTime  @default(now()) @map("criado_em")
+
+  // Relacionamentos 1:N
+  documentosCriados    Documento[]        @relation("AutorDocumento")
+  chamadosAbertos      Chamado[]          @relation("AutorChamado")
+  chamadosAtribuidos   Chamado[]          @relation("TecnicoChamado")
+  interacoesRealizadas InteracaoChamado[] @relation("AutorInteracao")
+
+  @@index([papel])
+  @@map("usuarios")
+}
+
+// ----------------------------------------------------------------------------
+// 2. Tabela: Categoria (Subdomínios técnicos da linguagem HP-HL)
+// ----------------------------------------------------------------------------
+model Categoria {
+  id          Int      @id @default(autoincrement())
+  nome        String   @unique @db.VarChar(100)
+  slug        String   @unique @db.VarChar(100)
+  moduloHphl  String   @map("modulo_hphl") @db.VarChar(80)
+  descricao   String   @db.Text
+  slaHoras    Int      @default(24) @map("sla_horas")
+  criadoEm    DateTime @default(now()) @map("criado_em")
+
+  // Relacionamentos 1:N
+  documentos  Documento[]
+  chamados    Chamado[]
+
+  @@map("categorias")
+}
+
+// ----------------------------------------------------------------------------
+// 3. Tabela: Documentos (Artigos da Base de Conhecimento HP-HL + Vetor 1536d)
+// Atende diretamente a Seção 3 ("Artigo") e o Prompt da Trilha C ("Documentos")
+// ----------------------------------------------------------------------------
+model Documento {
+  id                Int      @id @default(autoincrement())
+  codigoDiagnostico String   @unique @map("codigo_diagnostico") @db.VarChar(40)
+  titulo            String   @db.VarChar(220)
+  resumo            String   @db.Text
+  conteudo          String   @db.Text
+  versaoLinguagem   String   @default("1.4.0-dev") @map("versao_linguagem") @db.VarChar(30)
+  visualizacoes     Int      @default(0)
+  publicado         Boolean  @default(true)
+  criadoEm          DateTime @default(now()) @map("criado_em")
+  atualizadoEm      DateTime @updatedAt @map("atualizado_em")
+
+  // Chaves Estrangeiras (Categoria e Autor)
+  categoriaId       Int      @map("categoria_id")
+  categoria         Categoria @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
+
+  autorId           Int      @map("autor_id")
+  autor             Usuario   @relation("AutorDocumento", fields: [autorId], references: [id], onDelete: Restrict)
+
+  // Vetor de Embeddings de 1536 dimensões (pgvector - Trilha C)
+  embedding         Unsupported("vector(1536)")?
+
+  // Chamados que foram solucionados com base neste artigo/documento
+  chamadosVinculados Chamado[]
+
+  @@index([categoriaId])
+  @@index([autorId])
+  @@map("documentos")
+}
+
+// ----------------------------------------------------------------------------
+// 4. Tabela: Chamado (Tickets de Suporte Técnico + Vetor 1536d para RAG)
+// ----------------------------------------------------------------------------
+model Chamado {
+  id                Int               @id @default(autoincrement())
+  protocolo         String            @unique @db.VarChar(40)
+  titulo            String            @db.VarChar(220)
+  descricao         String            @db.Text
+  trechoCodigoHphl  String?           @map("trecho_codigo_hphl") @db.Text
+  resolucao         String?           @db.Text
+  status            StatusChamado     @default(ABERTO)
+  prioridade        PrioridadeChamado @default(MEDIA)
+  tempoResolucaoMin Int?              @map("tempo_resolucao_min")
+  criadoEm          DateTime          @default(now()) @map("criado_em")
+  atualizadoEm      DateTime          @updatedAt @map("atualizado_em")
+
+  // Chaves Estrangeiras (Categoria, Autor Relator, Técnico Responsável e Documento Base)
+  categoriaId       Int               @map("categoria_id")
+  categoria         Categoria         @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
+
+  autorId           Int               @map("autor_id")
+  autor             Usuario           @relation("AutorChamado", fields: [autorId], references: [id], onDelete: Restrict)
+
+  tecnicoId         Int?              @map("tecnico_id")
+  tecnico           Usuario?          @relation("TecnicoChamado", fields: [tecnicoId], references: [id], onDelete: SetNull)
+
+  documentoBaseId   Int?              @map("documento_base_id")
+  documentoBase     Documento?        @relation(fields: [documentoBaseId], references: [id], onDelete: SetNull)
+
+  // Vetor de Embeddings de 1536 dimensões (pgvector - Trilha C)
+  embedding         Unsupported("vector(1536)")?
+
+  // Relacionamentos 1:N (Interações) e N:N (Tags)
+  interacoes        InteracaoChamado[]
+  tags              ChamadoTag[]
+
+  @@index([categoriaId, status])
+  @@index([prioridade, status])
+  @@index([autorId])
+  @@index([documentoBaseId])
+  @@map("chamados")
+}
+
+// ----------------------------------------------------------------------------
+// 5. Tabela: InteracaoChamado (Histórico Transacional de Atendimento 1:N)
+// ----------------------------------------------------------------------------
+model InteracaoChamado {
+  id          Int      @id @default(autoincrement())
+  mensagem    String   @db.Text
+  interna     Boolean  @default(false)
+  criadoEm    DateTime @default(now()) @map("criado_em")
+
+  chamadoId   Int      @map("chamado_id")
+  chamado     Chamado  @relation(fields: [chamadoId], references: [id], onDelete: Cascade)
+
+  autorId     Int      @map("autor_id")
+  autor       Usuario  @relation("AutorInteracao", fields: [autorId], references: [id], onDelete: Restrict)
+
+  @@index([chamadoId])
+  @@map("interacoes_chamado")
+}
+
+// ----------------------------------------------------------------------------
+// 6. Tabelas: Tag e ChamadoTag (Relacionamento N:N explícito com metadados)
+// ----------------------------------------------------------------------------
+model Tag {
+  id        Int          @id @default(autoincrement())
+  nome      String       @unique @db.VarChar(60)
+  corHex    String       @default("#10B981") @map("cor_hex") @db.VarChar(10)
+
+  chamados  ChamadoTag[]
+
+  @@map("tags")
+}
+
+model ChamadoTag {
+  chamadoId     Int      @map("chamado_id")
+  tagId         Int      @map("tag_id")
+  adicionadoEm  DateTime @default(now()) @map("adicionado_em")
+
+  chamado       Chamado  @relation(fields: [chamadoId], references: [id], onDelete: Cascade)
+  tag           Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([chamadoId, tagId])
+  @@map("chamados_tags")
+}
