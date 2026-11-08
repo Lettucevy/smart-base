@@ -6,6 +6,18 @@
 
 ---
 
+## 📚 Índice da Documentação Oficial do Projeto
+
+| Documento | Descrição |
+| :--- | :--- |
+| 📄 **[`README.md`](./README.md)** | Manual de execução passo a passo, Diagrama DER (Mermaid) e visão geral do projeto. |
+| 🤖 **[`IA_LOG.md`](./IA_LOG.md)** | **Relatório de Auditoria de IA** (Seção 6.4 do Edital): prompts utilizados e adaptações manuais da dupla. |
+| 📘 **[`docs/DICIONARIO_DE_DADOS_E_NORMALIZACAO.md`](./docs/DICIONARIO_DE_DADOS_E_NORMALIZACAO.md)** | Justificativa de Normalização (**1FN, 2FN e 3FN**), Dicionário de Dados das 7 tabelas e Índices **HNSW / B-Tree**. |
+| 🧠 **[`docs/ARQUITETURA_RAG_E_HPHL.md`](./docs/ARQUITETURA_RAG_E_HPHL.md)** | Arquitetura do fluxo RAG com `pgvector` (1536d), consultas SQL comentadas e integração com o Coprocessador Nativo **HP-HL**. |
+| 🎤 **[`docs/ROTEIRO_APRESENTACAO.md`](./docs/ROTEIRO_APRESENTACAO.md)** | Roteiro prático de apresentação dividido entre os dois integrantes da dupla. |
+
+---
+
 ## 🎯 1. Objetivo e Visão Geral do Projeto
 
 O **Smart-Base (HP-HL SmartDiag)** é um MVP de backend e camada de persistência de dados projetado para gerenciar o **Catálogo de Conhecimento Corporativo (`documentos`)** e o **Sistema de Helpdesk (`chamados`)** do ecossistema da linguagem de programação compilada **HP-HL** (*High Performance and High Level Language*).
@@ -175,6 +187,12 @@ node src/seed.js
    npm run hphl:build
    npm run hphl:benchmark
    ```
+
+6. **Abrir a Interface Web Demonstrativa (Painel HTML Interativo):**
+   ```bash
+   npm run web
+   ```
+   Acesse no navegador: **`http://localhost:3000`**
 
 ---
 
