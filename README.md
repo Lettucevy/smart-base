@@ -1,7 +1,5 @@
-# 🧠 Smart-Base: Catálogo de Conhecimento & Helpdesk Semântico HP-HL
+#  Smart-Base: Catálogo de Conhecimento & Helpdesk Semântico HP-HL
 
-**Disciplina:** Banco de Dados e Modelos de Gerenciamento  
-**Professor:** Willen Leolatto Carneiro  
 **Trilhas Implementadas:** **Trilha A (Prisma ORM Avançado)** + **Trilha C (IA e Semântica / RAG com `pgvector` 1536d)** + **Coprocessador Nativo em HP-HL**
 
 ---
@@ -10,15 +8,16 @@
 
 | Documento | Descrição |
 | :--- | :--- |
-| 📄 **[`README.md`](./README.md)** | Manual de execução passo a passo, Diagrama DER (Mermaid) e visão geral do projeto. |
-| 🤖 **[`IA_LOG.md`](./IA_LOG.md)** | **Relatório de Auditoria de IA** (Seção 6.4 do Edital): prompts utilizados e adaptações manuais da dupla. |
-| 📘 **[`docs/DICIONARIO_DE_DADOS_E_NORMALIZACAO.md`](./docs/DICIONARIO_DE_DADOS_E_NORMALIZACAO.md)** | Justificativa de Normalização (**1FN, 2FN e 3FN**), Dicionário de Dados das 7 tabelas e Índices **HNSW / B-Tree**. |
-| 🧠 **[`docs/ARQUITETURA_RAG_E_HPHL.md`](./docs/ARQUITETURA_RAG_E_HPHL.md)** | Arquitetura do fluxo RAG com `pgvector` (1536d), consultas SQL comentadas e integração com o Coprocessador Nativo **HP-HL**. |
-| 🎤 **[`docs/ROTEIRO_APRESENTACAO.md`](./docs/ROTEIRO_APRESENTACAO.md)** | Roteiro prático de apresentação dividido entre os dois integrantes da dupla. |
+|  **[`README.md`](./README.md)** | Manual de execução passo a passo, Diagrama DER (Mermaid) e visão geral do projeto. |
+|  **[`IA_LOG.md`](./IA_LOG.md)** | **Relatório de Auditoria de IA** (Seção 6.4 do Edital): prompts utilizados e adaptações manuais da dupla. |
+|  **[`docs/DICIONARIO_DE_DADOS_E_NORMALIZACAO.md`](./docs/DICIONARIO_DE_DADOS_E_NORMALIZACAO.md)** | Justificativa de Normalização (**1FN, 2FN e 3FN**), Dicionário de Dados das 7 tabelas e Índices **HNSW / B-Tree**. |
+|  **[`docs/ARQUITETURA_RAG_E_HPHL.md`](./docs/ARQUITETURA_RAG_E_HPHL.md)** | Arquitetura do fluxo RAG com `pgvector` (1536d), consultas SQL comentadas e integração com o Coprocessador Nativo **HP-HL**. |
+|  **[`docs/GLOSSARIO_TECNICO.md`](./docs/GLOSSARIO_TECNICO.md)** | **Item 8 — Glossário Explicativo**: definição de cada termo do edital e onde foi implementado no projeto. |
+|  **[`docs/ROTEIRO_APRESENTACAO.md`](./docs/ROTEIRO_APRESENTACAO.md)** | Roteiro prático de apresentação dividido entre os dois integrantes da dupla. |
 
 ---
 
-## 🎯 1. Objetivo e Visão Geral do Projeto
+##  1. Objetivo e Visão Geral do Projeto
 
 O **Smart-Base (HP-HL SmartDiag)** é um MVP de backend e camada de persistência de dados projetado para gerenciar o **Catálogo de Conhecimento Corporativo (`documentos`)** e o **Sistema de Helpdesk (`chamados`)** do ecossistema da linguagem de programação compilada **HP-HL** (*High Performance and High Level Language*).
 
@@ -29,7 +28,7 @@ O sistema resolve um problema real de engenharia de software e suporte técnico:
 
 ---
 
-## 🗂️ 2. Modelagem de Banco de Dados (DER)
+##  2. Modelagem de Banco de Dados (DER)
 
 ```mermaid
 erDiagram
@@ -116,7 +115,7 @@ erDiagram
 
 ---
 
-## ⚙️ 3. Pré-Requisitos
+##  3. Pré-Requisitos
 
 - **Node.js:** versão 22 a 24 (testado em `v24.14.1`)
 - **Docker & Docker Compose:** para subir o PostgreSQL 16 (`pgvector/pgvector:pg16`) e o `pgAdmin 4`
@@ -125,7 +124,7 @@ erDiagram
 
 ---
 
-## 🚀 4. Manual de Execução Passo a Passo
+##  4. Manual de Execução Passo a Passo
 
 ### Passo 1: Clonar o repositório e instalar as dependências
 ```bash
@@ -196,7 +195,7 @@ node src/seed.js
 
 ---
 
-## 📂 5. Estrutura de Arquivos do Projeto
+##  5. Estrutura de Arquivos do Projeto
 
 ```text
 smart-base/
@@ -225,3 +224,19 @@ smart-base/
 ├── IA_LOG.md                       # Relatório de Auditoria de Prompts e Adaptações Manuais
 └── README.md                       # Manual de Execução e Documentação Arquitetural
 ```
+
+---
+
+## 📖 6. Glossário Explicativo (Item 8 do Edital — Aplicado ao Projeto)
+
+| Termo | Definição Conceitual | Onde está implementado no `smart-base` |
+| :--- | :--- | :--- |
+| **Docker / Contêineres** | Tecnologia que permite empacotar o banco de dados e suas configurações, garantindo que o sistema rode da mesma forma no computador de todos. | [`docker-compose.yml`](./docker-compose.yml) e [`docker/init-db.sql`](./docker/init-db.sql) (`pgvector/pgvector:pg16` + `pgAdmin 4`). |
+| **Embeddings (Vetores)** | Representação matemática de um texto (1536 números reais). Permite que o sistema entenda o significado da frase (ex.: reconhecendo que *"senha esquecida"* e *"recuperar acesso"* tratam do mesmo assunto). | [`src/embeddings.js`](./src/embeddings.js) e Coprocessador Nativo [`hphl/smartdiag_engine.hphl`](./hphl/smartdiag_engine.hphl). |
+| **`pgvector`** | Extensão oficial para o PostgreSQL que permite armazenar e consultar vetores (`vector(1536)`), essencial para bancos de dados de IA. | [`prisma/migrations/.../migration.sql`](./prisma/migrations/20261108000000_init_smartbase_pgvector/migration.sql) (Índices **HNSW** `vector_cosine_ops`) e [`src/search.js`](./src/search.js). |
+| **RAG (Retrieval-Augmented Generation)** | Técnica onde a IA "pesquisa" informações reais no banco de dados local (PostgreSQL) antes de formular uma resposta fundamentada ao usuário. | [`src/rag.js`](./src/rag.js) (recupera o Artigo Oficial + Chamado Resolvido mais similar e sintetiza a solução com snippet `.hphl`). |
+| **ORM (Object-Relational Mapping)** | Ferramenta que converte as tabelas do banco de dados em objetos no código, facilitando inserções, relacionamentos e transações. | [`prisma/schema.prisma`](./prisma/schema.prisma) e [`src/create-ticket.js`](./src/create-ticket.js) (`prisma.$transaction`). |
+| **Seeders / Mock Data** | Scripts automatizados responsáveis por popular o banco de dados inicial com milhares de dados fictícios para testar a performance do sistema. | [`src/seed.js`](./src/seed.js) e [`src/knowledge-catalog.js`](./src/knowledge-catalog.js) (**5.000 chamados** inseridos em lote em ~5s). |
+| **Full-Text Search vs. Busca Semântica** | Técnica para pesquisar termos dentro de grandes blocos de texto. Enquanto a Trilha B usa motores léxicos (como Elasticsearch), na Trilha C usamos **Busca Vetorial Semântica** via distância de cosseno (`<=>`). | [`src/search.js`](./src/search.js) (`1 - (embedding <=> $1::vector)`). |
+| **MVP (Minimum Viable Product)** | Produto Mínimo Viável: a versão fundamental e funcional do projeto que já entrega e comprova o valor principal de persistência e recuperação de informação. | CLI ([`src/index.js`](./src/index.js)) + Interface Web Demonstrativa ([`src/server.js`](./src/server.js) em `http://localhost:3000`). |
+
