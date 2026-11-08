@@ -14,6 +14,8 @@
     "create-ticket": "node src/create-ticket.js",
     "hphl:build": "node src/hphl-bridge.js --build",
     "hphl:benchmark": "node src/hphl-bridge.js --benchmark",
+    "web": "node src/server.js",
+    "start": "node src/server.js",
     "demo": "node src/index.js"
   },
   "keywords": [
