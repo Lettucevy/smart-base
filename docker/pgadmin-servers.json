@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Smart-Base PostgreSQL 16 (pgvector)",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "smartbase_db",
+      "Username": "smartbase_user",
+      "SSLMode": "prefer"
+    }
+  }
+}

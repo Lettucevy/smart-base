@@ -1,0 +1,30 @@
+# Dependências Node.js
+node_modules/
+npm-debug.log*
+
+# Variáveis de ambiente e segredos
+.env
+.env.local
+.env.*.local
+
+# Dados locais de volumes do Docker (caso mapeados localmente)
+pgdata/
+pgadmin_data/
+
+# Binários e artefatos temporários do compilador HP-HL
+*.exe
+*.o
+*.s
+*.ll
+*.bc
+*.pdb
+*.ilk
+crash.log
+hphl_seed_data.json
+data/
+
+# Arquivos de sistema e IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
