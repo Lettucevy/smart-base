@@ -22,6 +22,12 @@ services:
     image: dpage/pgadmin4:latest
     container_name: smartbase-pgadmin
     restart: unless-stopped
+    # Gera o arquivo pgpass (permissão 600) antes de iniciar o pgAdmin,
+    # para que a conexão com o PostgreSQL abra sem pedir senha.
+    entrypoint:
+      - /bin/sh
+      - -c
+      - "echo 'postgres:5432:*:smartbase_user:smartbase_pass123' > /var/lib/pgadmin/pgpass && chmod 600 /var/lib/pgadmin/pgpass && exec /entrypoint.sh"
     depends_on:
       postgres:
         condition: service_healthy
